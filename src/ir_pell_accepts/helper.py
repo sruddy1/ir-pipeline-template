@@ -47,3 +47,23 @@ def calc_percent(num: float, denom: float, round_to: int = 2) -> float:
     round_to = round(abs(round_to), 0)
 
     return round((num/denom)*100, round_to) 
+
+def adjust_term(term: str, years: int) -> str:
+    """
+    Params
+    ------
+    term : str
+        eg. "202580"
+    years : int
+        student took no more than 'years_to_grad' to graduate.
+    
+    Returns
+    -------
+    str
+        The term corresponding to the cohort whose 'years_to_grad' can now
+        be calculated. Ex: If the current term is 202580 then the term
+        202180 can now have their 4-yr grad rate calculated. This function
+        returns the term 'years_to_grad' back.
+    """
+    return "".join([str(int(term[:4]) + years), term[-2:]])
+

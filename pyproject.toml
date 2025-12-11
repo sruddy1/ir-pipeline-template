@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ir_pell_accepts"
-version = "0.2.0"
-description = "0.1.0 excluded enrolled students in the fall term that were not found in the cohort/retention file. 0.2.0 fixes this by explicitly including the missing-cohort students into the non-incoming fall enrollment bins"
+version = "0.3.0"
+description = "0.3.0 includes the calcs for 4/6 year grad rates and 2nd year retention rates"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,4 +1,4 @@
 Metadata-Version: 2.4
 Name: ir_pell_accepts
-Version: 0.2.0
-Summary: 0.1.0 excluded enrolled students in the fall term that were not found in the cohort/retention file. 0.2.0 fixes this by explicitly including the missing-cohort students into the non-incoming fall enrollment bins
+Version: 0.3.0
+Summary: 0.3.0 includes the calcs for 4/6 year grad rates and 2nd year retention rates
