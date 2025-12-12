@@ -1,5 +1,5 @@
 
-def calc_academic_year_from_term(term: str) -> str:
+def calc_academic_year_from_term(term: str, two_digit: bool=True) -> str:
     """
     Params
     ------
@@ -8,9 +8,11 @@ def calc_academic_year_from_term(term: str) -> str:
     
     Returns
     -------
-        String in the form "2526", representing the academic year of the given term.
+        String in the form "2526", representing the academic year of the given term if two_digit=True, otherwise 2025-2026
     """
-    return term[2:4] + str(int(term[2:4])+1)
+    year = term[:4]
+    acad_year = term[2:4] + str(int(term[2:4])+1) if two_digit else "-".join([year, str(int(year) + 1)])
+    return acad_year
 
 
 def construct_cohort(term: str, cohort_type: str = "Fall, First-Time, Full-Time") -> str:

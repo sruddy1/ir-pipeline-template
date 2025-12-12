@@ -88,6 +88,16 @@ def grs_cohort(
     return sum(dfr[cohort_column] == cohort)
 
 
+def filter_enrollment_table(dfe: pd.DataFrame, term: str) -> pd.DataFrame:
+    enrollment_conditions = (
+        (dfe['Academic Period'] == term) &
+        (dfe['Time Status'] == 'FT') &
+        (dfe['Student Level'] == 'UG') &
+        (dfe['Degree'] != 'Non Degree')
+    )
+    return dfe[enrollment_conditions]
+
+
 def total_headcount(dfe: pd.DataFrame, term: str, id_column: str) -> int:
     """
     Calculates enrollment headcount in the provided academic term for full-time, undergrad, degree-seeking students.
@@ -113,12 +123,9 @@ def total_headcount(dfe: pd.DataFrame, term: str, id_column: str) -> int:
     """
     validate_enrollment_columns(df=dfe, id_column=id_column)
 
-    return dfe.loc[(
-        (dfe['Academic Period'] == term) & 
-        (dfe['Time Status'] == 'FT') & 
-        (dfe['Student Level'] == 'UG') &
-        (dfe['Degree'] != 'Non Degree')
-    ), id_column].nunique()
+    dfe = filter_enrollment_table(dfe=dfe, term=term)
+
+    return dfe[id_column].dropna().nunique()
 
 
 def fall_enrollment(
@@ -175,18 +182,13 @@ def fall_enrollment(
     validate_cohort_columns(df=dfr, id_column=id_column)
     validate_enrollment_columns(df=dfe, id_column=id_column)
 
-    enrollment_conditions = (
-        (dfe['Academic Period'] == term) &
-        (dfe['Time Status'] == 'FT') &
-        (dfe['Student Level'] == 'UG') &
-        (dfe['Degree'] != 'Non Degree')
-    )
+    dfe = filter_enrollment_table(dfe=dfe, term=term)
 
     aid_year = calc_academic_year_from_term(term) 
     incoming_transfer_cohort = term[0:4] + " " + "Fall, Transfer, Full-Time"
     
     pids = dfp.loc[dfp['AID_YEAR'] == aid_year, id_column].dropna()
-    eids = dfe.loc[enrollment_conditions, id_column].dropna()
+    eids = dfe[id_column].dropna()
     rids = dfr.loc[dfr['Cohort Name'] != incoming_transfer_cohort, id_column].dropna()
     rids_t = dfr.loc[dfr['Cohort Name'] == incoming_transfer_cohort, id_column].dropna()
          

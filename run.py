@@ -36,6 +36,7 @@ from ir_pell_accepts.headcount_calcs import (grs_cohort_pell, grs_cohort, total_
 from ir_pell_accepts.clean import remove_leading_zeros
 from ir_pell_accepts.helper import calc_percent, construct_cohort, adjust_term
 from ir_pell_accepts.output import output_results
+from ir_pell_accepts.tables_for_carol import generate_table_for_carol, generate_ipeds_table_for_carol
 
 
 # In[ ]:
@@ -44,7 +45,7 @@ from ir_pell_accepts.output import output_results
 ## Jupyter-Notebook Only -- comment-out when creating .py script
 
 # pd.set_option('display.max_rows', 1000)
-# pd.set_option('display.max_columns', 50)
+# pd.set_option('display.max_columns', 1000)
 # pd.set_option('display.max_seq_items', 1000)
 
 
@@ -69,10 +70,12 @@ DIR = Path(config["box_repo"]["pell_dir"]).expanduser()
 PELL_PATH = DIR / Path(config["box_repo"]["pell_file"]).expanduser()
 RETENTION_PATH = Path(config["box_repo"]["retention_dir"]).expanduser() / Path(config["box_repo"]["retention_file"]).expanduser()
 ENROLLMENT_PATH = Path(config["box_repo"]["enrollment_dir"]).expanduser() / Path(config["box_repo"]["enrollment_file"]).expanduser()
-RESULTS_PATH = Path(config["box_repo"]["results_dir"]) / Path(config["box_repo"]["results_file"])
+RESULTS_PATH = Path(config["box_repo"]["results_dir"])
+RESULTS_FILE = RESULTS_PATH / Path(config["box_repo"]["results_file"])
 
 # Project Parameters
 term = config["params"]["term"] 
+ipeds_acad_year = config["params"]["ipeds_acad_year"] 
 retention_cohort_term = adjust_term(term=term, years=-1)
 grad_term_4 = adjust_term(term=term, years=-4)
 grad_term_6 = adjust_term(term=term, years=-6)
@@ -98,8 +101,8 @@ if not RETENTION_PATH.exists():
 if not ENROLLMENT_PATH.exists():
     raise FileNotFoundError(f"Input Retention file does not exist: {ENROLLMENT_PATH}")
 
-if not RESULTS_PATH.parent.exists():
-    raise FileNotFoundError(f"Results path does not exist: {RESULTS_PATH.parent}")
+if not RESULTS_FILE.parent.exists():
+    raise FileNotFoundError(f"Results path does not exist: {RESULTS_FILE.parent}")
 
 if len(term) != 6:
     raise ValueError(f"Value for term, {term}, is invalid. Needs to be a 6 digit numeric. Ex: '202580'")
@@ -252,8 +255,19 @@ df_results = pd.concat([
 # In[ ]:
 
 
+# Output Tables for Carol
+
+generate_table_for_carol(dfe=df_enrl, term=term, outpath=RESULTS_PATH)
+generate_ipeds_table_for_carol(dfr=df_ret, acad_year=ipeds_acad_year, outpath=RESULTS_PATH)
+generate_ipeds_table_for_carol(dfr=df_ret, acad_year="-".join([str(int(ipeds_acad_year[:4]) - 1), str(int(ipeds_acad_year[-4:]) - 1)]), outpath=RESULTS_PATH)
+
+
+# In[ ]:
+
+
 # Output results
-output_results(df=df_results, file_path=RESULTS_PATH, append_today=False, append_version=False)
+
+output_results(df=df_results, file_path=RESULTS_FILE, append_today=False, append_version=False)
 
 
 # In[ ]:

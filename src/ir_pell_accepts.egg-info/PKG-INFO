@@ -1,4 +1,4 @@
 Metadata-Version: 2.4
 Name: ir_pell_accepts
-Version: 0.3.2
-Summary: 0.3.1 reorganizes the output to be 3 columns. This allows for outputting metrics across different fall cohorts all together in a clear way (ie grad4/6 year and retention alongside the current fall cohort metrics). 0.3.2 outputs a sheet into an existing file
+Version: 0.3.3
+Summary: 0.3.1 reorganizes the output to be 3 columns. This allows for outputting metrics across different fall cohorts all together in a clear way (ie grad4/6 year and retention alongside the current fall cohort metrics). 0.3.2 outputs a sheet into an existing file. 0.3.0 addes a function for creating a table for Carol to use to input First gen status and pell recipient status
