@@ -20,9 +20,8 @@ nav:
       - Overview: pipeline.md
       - Configs: configs.md
   - Notebooks: notebooks.md
-  #- Code Reference: SUMMARY.md   
-  - Code Reference: reference/SUMMARY.md   
-
+  - Code Reference: SUMMARY.md   
+  
 markdown_extensions:
   - admonition
   - codehilite
@@ -35,8 +34,7 @@ plugins:
       scripts:
         - scripts/gen_ref_pages.py
   - literate-nav:
-      #nav_file: SUMMARY.md
-      nav_file: reference/SUMMARY.md
+      nav_file: SUMMARY.md
   - section-index
   - mkdocstrings:
       handlers:
