@@ -7,7 +7,7 @@ from ir_pell_accepts.helper import calc_academic_year_from_term
 
 def generate_table_for_carol(dfe: pd.DataFrame, term: str, outpath: str | Path) -> None:
     """
-    # Generate a table of student IDs for all enrolled students for the given academic period, and output as an excel file.
+    # TEST Generate a table of student IDs for all enrolled students for the given academic period, and output as an excel file.
     
         This is for Carol to add two flags:
         
