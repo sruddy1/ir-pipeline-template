@@ -1,40 +1,41 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 from pathlib import Path
-from typing import Union
 
 import pandas as pd
 
 
-def infer_and_read_file(file: Union[str, Path]) -> pd.DataFrame:
+def infer_and_read_file(file: str | Path) -> pd.DataFrame:
     """
-    Read a file into a pandas DataFrame, inferring its extension.
+    # Infers file type and reads into a pandas DataFrame.
 
-    Supported file types:
-        - .xlsx : Excel workbook
-        - .csv  : Comma-separated values
-        - .txt  : Tab-delimited text file
+        All columns are converted to strings. 
 
+        Supported file types: .xlsx, .csv, and .txt
+
+        Raises FileNotFoundError() if file does not exist
+        
+        Raises ValueError() if not one of the supported file types.
+    
     Parameters
     ----------
-    file : str or pathlib.Path : Path to the input file.
+    > file : string or Path object
+    
+        Path to file.
+
+        Ex: '/c/Users/sruddy1/my_file.xlsx'
+        
+        Ex: r'C:\\Users\\sruddy1\\my_file.xlsx'
+
+        Ex: Path('/c/Users/sruddy1/my_file.xlsx')
+
+        Ex: Path(r'C:\\Users\\sruddy1\\my_file.xlsx')
 
     Returns
     -------
-    pandas.DataFrame : The loaded data with all columns converted to strings.
-
-    Raises
-    ------
-    FileNotFoundError
-        If the provided file path does not exist.
-    ValueError
-        If the file extension is not one of the supported types.
+    > pandas DataFrame
+    
+        The loaded data with all columns converted to strings.
+    #
     """
-
     allowed = {'.xlsx', '.csv', '.txt'}
 
     path = Path(file)

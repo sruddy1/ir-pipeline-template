@@ -1,131 +1,7 @@
 import pandas as pd
-from ir_pell_accepts.helper import calc_academic_year_from_term, construct_cohort, adjust_term
-from ir_pell_accepts.checks import validate_pell_columns, validate_cohort_columns, validate_enrollment_columns
-
-def grs_cohort_pell(
-    dfp: pd.DataFrame,
-    dfr: pd.DataFrame,
-    id_column: str,
-    term: str,
-    aid_year_column: str = "AID_YEAR",
-    cohort_column: str = "Cohort Name"
-) -> int:
-    """
-    Calculate the number of Pell recipients for the given aid year and cohort type.
-
-    Parameters
-    ----------
-    dfp : pandas.DataFrame
-        Pell awards dataframe.
-    dfr : pandas.DataFrame
-        Retention / cohort dataframe.
-    id_column : str
-        Column to use for student IDs; must exist in both dataframes (e.g., "ID").
-    term : str
-        Term e.g. "202580".
-    aid_year_column : str, default "AID_YEAR"
-        Column in the Pell dataframe that stores aid year values.
-    cohort_column : str, default "Cohort Name"
-        Column in the retention dataframe that stores cohort names.
-
-    Returns
-    -------
-    int
-        The number of students who are both Pell recipients in the given aid year
-        and cohort.
-
-    Raises
-    ------
-    ValueError
-        If any of the required column names are not present in their respective dataframes.
-    """
-    validate_pell_columns(df=dfp, id_column=id_column)
-    validate_cohort_columns(df=dfr, id_column=id_column)
-
-    aid_year = calc_academic_year_from_term(term)
-    cohort = construct_cohort(term)
-    # Filter IDs by aid year and cohort
-    pids = dfp.loc[dfp[aid_year_column] == aid_year, id_column].dropna()
-    rids = dfr.loc[dfr[cohort_column] == cohort, id_column].dropna()
-
-    # Return overlap size
-    return len(set(pids) & set(rids))
-
-
-def grs_cohort(
-    dfr: pd.DataFrame,
-    id_column: str,
-    term: str,
-    cohort_column: str = "Cohort Name"
-) -> int:
-    """
-    Calculate the total size of the provided cohort.
-
-    Parameters
-    ----------
-    dfr : pandas.DataFrame
-        Retention / cohort dataframe.
-    id_column : str
-        Column to use for student IDs; must exist in both dataframes (e.g., "ID").
-    term : str
-        Term e.g. "202580".
-    cohort_column : str, default "Cohort Name"
-        Column in the retention dataframe that stores cohort names.
-
-    Returns
-    -------
-    int
-        The number of students in the provided cohort.
-
-    Raises
-    ------
-    ValueError
-        If any of the required column names are not present in their respective dataframes.
-    """
-    validate_cohort_columns(df=dfr, id_column=id_column)
-
-    cohort = construct_cohort(term)
-    return sum(dfr[cohort_column] == cohort)
-
-
-def filter_enrollment_table(dfe: pd.DataFrame, term: str) -> pd.DataFrame:
-    enrollment_conditions = (
-        (dfe['Academic Period'] == term) &
-        (dfe['Time Status'] == 'FT') &
-        (dfe['Student Level'] == 'UG') &
-        (dfe['Degree'] != 'Non Degree')
-    )
-    return dfe[enrollment_conditions]
-
-
-def total_headcount(dfe: pd.DataFrame, term: str, id_column: str) -> int:
-    """
-    Calculates enrollment headcount in the provided academic term for full-time, undergrad, degree-seeking students.
-
-    Parameters
-    ----------
-    dfe : pandas.DataFrame
-        The census data enrollment dataframe.
-    term : str
-        The term in which to calculate enrollment. (e.g., "202580").
-    id_column: str
-        The name of the id_column to identify unique students. (e.g., "ID").
-    
-    Returns
-    -------
-    int
-        Returns the enrollment headcount for full-time, undergrad, degree-seeking students in the provide academic term.
-
-    Raises
-    ------
-    ValueError
-        If any of the required columns are not present in df.
-    """
-    validate_enrollment_columns(df=dfe, id_column=id_column)
-
-    dfe = filter_enrollment_table(dfe=dfe, term=term)
-
-    return dfe[id_column].dropna().nunique()
+from ir_pell_accepts.helper import calc_academic_year_from_term, construct_cohort, adjust_term, filter_enrollment_table
+from ir_pell_accepts.checks import (validate_columns, required_cohort_columns, 
+                                    required_enrollment_columns, required_pell_columns)
 
 
 def fall_enrollment(
@@ -138,49 +14,79 @@ def fall_enrollment(
     transfer: bool = False
 ) -> int:
     """
-    Term headcounts for full-time, degree-seeking undergrads.
+    # Calculate enrollment headcounts for 4 full-time undergraduate student subpopulations in the provided academic period/term.
 
-    Headcount Options
-    -----------------
-    pell = False and transfer = False
-        excludes incoming transfer students
-    pell = True and transfer = False
-        includes pell recipients and excludes incoming transfer students
-    pell = False and transfer = True
-        includes only incoming transfer students
-    pell = True and transfer = True
-        incoming transfer students that are also pell recipients
+        1. All students minus incoming transfer students. (includes pell and non-pell)
+
+        2. All pell recipients minus those that are incoming transfer students.
+        
+        3. All incoming transfer students. (includes pell and non-pell)
+        
+        4. All pell recipients that are strictly incoming transfer students.
 
     Parameters
     ----------
-    dfp : pandas.DataFrame
-        Census Date Enrollment dataframe.
-    dfe : pandas.DataFrame
-        Census Date Enrollment dataframe.
-    dfr : pandas.DataFrame
-        Retention / cohort dataframe.
-    id_column : str
-        Column to use for student IDs; must exist in both dataframes (e.g., "ID").
-    term: str
-        Academic term (e.g. "202580")
-    pell : bool
-        If True, restrict to just pell recipients
-    transfer: bool
-        If True, include incoming transfer students, otherwise exclude them. 
+    > dfp : pandas DataFrame
         
+        Pell table.
+    
+    > dfr : pandas DataFrame
+        
+        Undergraduate Retention and Graduation table.
+    
+    > dfe : pandas DataFrame
+        
+        Census Date Enrollment table.
+    
+    > id_column : string
+        
+        The name of the column being used to identify students. 
+        Applies to all dataframes.
+
+    > term : string
+
+        Academic period: e.g., '202580'.
+
+    > pell : boolean (True/False)
+
+        True: restrict to pell recipients.
+        
+        False: include both pell and non-pell students.
+
+    > transfer : boolean (True/False)
+    
+        True: restrict to incoming transfer students.
+
+        False: remove incoming transfer students.
+
+    <mark>Note:</mark> `pell` and `transfer` combine to create the 4 aforementioned student subpopulations.
+
     Returns
     -------
-    int
-        The number of total first-time students enrolled in the given term.
+    > integer
+        
+        Headcount for a given student subpopulation. 
 
-    Raises
-    ------
-    ValueError
-        If any of the required column names are not present in their respective dataframes.
+    Example
+    -------
+    > term = '202580'
+
+    > id_column = 'ID'
+
+    > pell = True
+
+    > transfer = False
+
+        return 
+        
+            1217
+
+            The number of pell recipients that are not incoming transfer students. 
+    #
     """
-    validate_pell_columns(df=dfp, id_column=id_column)
-    validate_cohort_columns(df=dfr, id_column=id_column)
-    validate_enrollment_columns(df=dfe, id_column=id_column)
+    validate_columns(df=dfp, id_column=id_column, required_cols=required_pell_columns())
+    validate_columns(df=dfr, id_column=id_column, required_cols=required_cohort_columns())
+    validate_columns(df=dfe, id_column=id_column, required_cols=required_enrollment_columns())
 
     dfe = filter_enrollment_table(dfe=dfe, term=term)
 
@@ -208,6 +114,64 @@ def fall_enrollment(
     # Return overlap size
     return size
 
+
+def grs_cohort(
+    dfr: pd.DataFrame,
+    id_column: str,
+    term: str,
+    cohort_column: str = "Cohort Name"
+) -> int:
+    """
+    # Calculate the First-Time, Full-Time cohort size for the provided academic period/term.
+
+    Parameters
+    ----------
+    > dfr : pandas DataFrame
+        
+        Undergraduate Retention and Graduation table.
+    
+    > id_column : string
+        
+        The name of the column being used to identify students. 
+        Applies to all dataframes.
+
+    > term : string
+
+        Academic period: e.g., '202580'.
+
+    > cohort_column : str
+    
+    >> default : 'Cohort Name'
+        
+        Column in the 'Undergraduate Retention and Graduation'
+        dataframe that stores the cohort names in the format 
+        '2025 Fall, First-Time, Full-Time'
+    
+    Returns
+    -------
+    > integer
+        
+        Size of the implied cohort.
+
+    Example
+    -------
+    > term = '202580'
+
+    > id_column = 'ID'
+
+    > cohort_column = 'Cohort Name'
+    
+        return 
+        
+            1571
+    #
+    """
+    validate_columns(df=dfr, id_column=id_column, required_cols=required_cohort_columns())
+
+    cohort = construct_cohort(term)
+    return sum(dfr[cohort_column] == cohort)
+
+
 def grs_cohort_grad(
     dfr: pd.DataFrame,
     id_column: str,
@@ -216,32 +180,59 @@ def grs_cohort_grad(
     cohort_column: str = "Cohort Name"
 ) -> float:
     """
-    N-year FED graduation rate
+    # N-year FED graduation rate for the provided academic period.
 
     Parameters
     ----------
-    dfr : pandas.DataFrame
-        Retention / cohort dataframe.
-    id_column : str
-        Column to use for student IDs; must exist in both dataframes (e.g., "ID").
-    term : str
-        Term e.g. "202580".
-    years_to_grad : int
-        student took no more than 'years_to_grad' to graduate.
-    cohort_column : str, default "Cohort Name"
-        Column in the retention dataframe that stores cohort names.
+    > dfr : pandas DataFrame
+        
+        Undergraduate Retention and Graduation table.
+
+    > id_column : string
+        
+        The name of the column being used to identify students. 
+        Applies to all dataframes.
+
+    > term : string
+
+        Academic period: e.g., '202580'.
+
+    > years_to_grad : integer
+
+        The number of years to graduation for which to calculate the graduation rate.  
+
+    > cohort_column : str
+    
+    >> default : 'Cohort Name'
+        
+        Column in the 'Undergraduate Retention and Graduation'
+        dataframe that stores the cohort names in the format 
+        '2025 Fall, First-Time, Full-Time'
 
     Returns
     -------
-    float
-        returns decimal proportion of grad rate, rounded to 3 decimal places.
+    > decimal float
+        
+        Graduation rate rounded to 3 decimal places. 
 
-    Raises
-    ------
-    ValueError
-        If any of the required column names are not present in their respective dataframes.
-    """ 
-    validate_cohort_columns(df=dfr, id_column=id_column)
+    Example
+    -------
+    > term = '202180'
+
+    > id_column = 'ID'
+
+    > cohort_column = 'Cohort Name'
+
+    > years_to_grad = 4
+
+        return 
+        
+            0.703
+        
+            The graduation rate of the 2021 FED cohort. 
+    #
+    """
+    validate_columns(df=dfr, id_column=id_column, required_cols=required_cohort_columns())
 
     cohort = construct_cohort(term)
     cond1 = dfr[cohort_column] == cohort
@@ -251,6 +242,85 @@ def grs_cohort_grad(
     n_tot = grs_cohort(dfr=dfr, id_column=id_column, term=term, cohort_column=cohort_column)
     
     return round(n_grad / n_tot, 3)
+
+
+def grs_cohort_pell(
+    dfp: pd.DataFrame,
+    dfr: pd.DataFrame,
+    id_column: str,
+    term: str,
+    aid_year_column: str = "AID_YEAR",
+    cohort_column: str = "Cohort Name"
+) -> int:
+    """
+    # Calculate the number of Pell recipients for the given aid year and the 'Fall, First-Time, Full-Time' cohort.
+
+    Parameters
+    ----------
+    > dfp : pandas DataFrame
+        
+        Pell table.
+    
+    > dfr : pandas DataFrame
+        
+        Undergraduate Retention and Graduation table.
+    
+    > id_column : string
+        
+        The name of the column being used to identify students. 
+        Applies to all dataframes.
+
+    > term : string
+
+        Academic period: e.g., '202580'.
+
+    > aid_year_column : str
+    
+    >> default : 'AID_YEAR'
+        
+        Column name in the Pell table dataframe for aid year.
+    
+    > cohort_column : str
+    
+    >> default : 'Cohort Name'
+        
+        Column in the 'Undergraduate Retention and Graduation'
+        dataframe that stores the cohort names in the format 
+        '2025 Fall, First-Time, Full-Time'
+    
+    Returns
+    -------
+    > integer
+        
+        Number of Pell recipients in the given aid year that
+        are Fall, First-Time, Full-Time.
+
+    Example
+    -------
+    > term = '202580'
+
+    > id_column = 'ID'
+
+    > aid_year_column = 'AID_YEAR'
+
+    > cohort_column = 'Cohort Name'
+    
+        return 
+            
+            343
+    #
+    """
+    validate_columns(df=dfp, id_column=id_column, required_cols=required_pell_columns())
+    validate_columns(df=dfr, id_column=id_column, required_cols=required_cohort_columns())
+
+    aid_year = calc_academic_year_from_term(term)
+    cohort = construct_cohort(term)
+    # Filter IDs by aid year and cohort
+    pids = dfp.loc[dfp[aid_year_column] == aid_year, id_column].dropna()
+    rids = dfr.loc[dfr[cohort_column] == cohort, id_column].dropna()
+
+    # Return overlap size
+    return len(set(pids) & set(rids))
 
 
 def grs_cohort_pell_grad(
@@ -263,37 +333,70 @@ def grs_cohort_pell_grad(
     cohort_column: str = "Cohort Name"
 ) -> int:
     """
-    N-year Pell-recipient FED graduation rate among all Pell-recipient FED students.
+    # N-year Pell recipient graduation rate for the FED cohort and the provided academic period.
 
     Parameters
     ----------
-    dfp : pandas.DataFrame
-        Pell awards dataframe.
-    dfr : pandas.DataFrame
-        Retention / cohort dataframe.
-    id_column : str
-        Column to use for student IDs; must exist in both dataframes (e.g., "ID").
-    term : str
-        Term e.g. "202580".
-    years_to_grad : int
-        student took no more than 'years_to_grad' to graduate.
-    aid_year_column : str, default "AID_YEAR"
-        Column in the Pell dataframe that stores aid year values.
-    cohort_column : str, default "Cohort Name"
-        Column in the retention dataframe that stores cohort names.
+    > dfp : pandas DataFrame
+        
+        Pell table.
+    
+    > dfr : pandas DataFrame
+        
+        Undergraduate Retention and Graduation table.
+
+    > id_column : string
+        
+        The name of the column being used to identify students. 
+        Applies to all dataframes.
+
+    > term : string
+
+        Academic period: e.g., '202580'.
+
+    > years_to_grad : integer
+
+        The number of years to graduation for which to calculate the graduation rate.  
+
+    > aid_year_column : str
+    
+    >> default : 'AID_YEAR'
+        
+        Column name in the Pell table dataframe for aid year.
+    
+    > cohort_column : str
+    
+    >> default : 'Cohort Name'
+        
+        Column in the 'Undergraduate Retention and Graduation'
+        dataframe that stores the cohort names in the format 
+        '2025 Fall, First-Time, Full-Time'
 
     Returns
     -------
-    float
-        returns decimal proportion of grad rate, rounded to 3 decimal places.
+    > decimal float
+        
+        Graduation rate rounded to 3 decimal places. 
 
-    Raises
-    ------
-    ValueError
-        If any of the required column names are not present in their respective dataframes.
+    Example
+    -------
+    > term = '202180'
+
+    > id_column = 'ID'
+
+    > cohort_column = 'Cohort Name'
+
+    > years_to_grad = 4
+
+        return 
+        
+            0.583
+        
+            The graduation rate of the 2021 Pell recipient, FED cohort. 
+    #
     """
-    validate_pell_columns(df=dfp, id_column=id_column)
-    validate_cohort_columns(df=dfr, id_column=id_column)
+    validate_columns(df=dfp, id_column=id_column, required_cols=required_pell_columns())
+    validate_columns(df=dfr, id_column=id_column, required_cols=required_cohort_columns())
 
     aid_year = calc_academic_year_from_term(term)
     cohort = construct_cohort(term)
@@ -319,30 +422,53 @@ def second_year_retention_rate(
     cohort_column: str = "Cohort Name"
 ) -> float:
     """
-    Second year retention rate for FED students
+    # Second-year retention rate for the FED cohort of the given academic period
 
     Parameters
     ----------
-    dfr : pandas.DataFrame
-        Retention / cohort dataframe.
-    id_column : str
-        Column to use for student IDs; must exist in both dataframes (e.g., "ID").
-    term : str
-        cohort term for which second year retainment is calculated
-    cohort_column : str, default "Cohort Name"
-        Column in the retention dataframe that stores cohort names.
+    > dfr : pandas DataFrame
+        
+        Undergraduate Retention and Graduation table.
+
+    > id_column : string
+        
+        The name of the column being used to identify students. 
+        Applies to all dataframes.
+
+    > term : string
+
+        Academic period: e.g., '202580'.
+
+    > cohort_column : str
+    
+    >> default : 'Cohort Name'
+        
+        Column in the 'Undergraduate Retention and Graduation'
+        dataframe that stores the cohort names in the format 
+        '2025 Fall, First-Time, Full-Time'
 
     Returns
     -------
-    float
-        returns decimal proportion of retention rate, rounded to 3 decimal places.
+    > decimal float
+        
+        Retention rate rounded to 3 decimal places. 
 
-    Raises
-    ------
-    ValueError
-        If any of the required column names are not present in their respective dataframes.
-    """ 
-    validate_cohort_columns(df=dfr, id_column=id_column)
+    Example
+    -------
+    > term = '202480'
+
+    > id_column = 'ID'
+
+    > cohort_column = 'Cohort Name'
+
+        return 
+        
+            0.899
+        
+            The retention rate of the 2024 FED cohort. 
+    #
+    """
+    validate_columns(df=dfr, id_column=id_column, required_cols=required_cohort_columns())
 
     retention_term = adjust_term(term=term, years=1)
     cohort = construct_cohort(term)
@@ -364,35 +490,64 @@ def second_year_retention_rate_pell(
     cohort_column: str = "Cohort Name"
 ) -> int:
     """
-    Second year retention reate for Pell-recipient FED among all Pell-recipient FED students.
+    # Second-year retention rate for the Pell + FED cohort of the given academic period
 
     Parameters
     ----------
-    dfp : pandas.DataFrame
-        Pell awards dataframe.
-    dfr : pandas.DataFrame
-        Retention / cohort dataframe.
-    id_column : str
-        Column to use for student IDs; must exist in both dataframes (e.g., "ID").
-    term : str
-        cohort term for which retention is calculated
-    aid_year_column : str, default "AID_YEAR"
-        Column in the Pell dataframe that stores aid year values.
-    cohort_column : str, default "Cohort Name"
-        Column in the retention dataframe that stores cohort names.
+    > dfp : pandas DataFrame
+        
+        Pell table.
+    
+    > dfr : pandas DataFrame
+        
+        Undergraduate Retention and Graduation table.
+
+    > id_column : string
+        
+        The name of the column being used to identify students. 
+        Applies to all dataframes.
+
+    > term : string
+
+        Academic period: e.g., '202580'.
+
+    > aid_year_column : str
+    
+    >> default : 'AID_YEAR'
+        
+        Column name in the Pell table dataframe for aid year.
+    
+    > cohort_column : str
+    
+    >> default : 'Cohort Name'
+        
+        Column in the 'Undergraduate Retention and Graduation'
+        dataframe that stores the cohort names in the format 
+        '2025 Fall, First-Time, Full-Time'
 
     Returns
     -------
-    float
-        returns decimal proportion of retention rate, rounded to 3 decimal places.
+    > decimal float
+        
+        Retention rate rounded to 3 decimal places. 
 
-    Raises
-    ------
-    ValueError
-        If any of the required column names are not present in their respective dataframes.
+    Example
+    -------
+    > term = '202480'
+
+    > id_column = 'ID'
+
+    > cohort_column = 'Cohort Name'
+
+        return 
+        
+            0.855
+        
+            The retention rate of the 2024 PELL+FED cohort. 
+    #
     """
-    validate_pell_columns(df=dfp, id_column=id_column)
-    validate_cohort_columns(df=dfr, id_column=id_column)
+    validate_columns(df=dfp, id_column=id_column, required_cols=required_pell_columns())
+    validate_columns(df=dfr, id_column=id_column, required_cols=required_cohort_columns())
 
     aid_year = calc_academic_year_from_term(term)
     cohort = construct_cohort(term)
@@ -411,3 +566,47 @@ def second_year_retention_rate_pell(
                             # total numer of pell feds
     
     return round(n_ret / n_tot, 3)
+
+
+def total_headcount(dfe: pd.DataFrame, term: str, id_column: str) -> int:
+    """
+    # Calculate total full-time, degree-seeking, undergraduate enrollment headcount for the provided academic period/term.
+
+    Parameters
+    ----------
+    > dfe : pandas DataFrame
+        
+        Census Date Enrollment table.
+    
+    > term : string
+
+        Academic period: e.g., '202580'.
+
+    > id_column : string
+        
+        The name of the column being used to identify students. 
+        Applies to all dataframes.
+    
+    Returns
+    -------
+    > integer
+        
+        Total enrollment headcount. 
+
+    Example
+    -------
+    > term = '202580'
+
+    > id_column = 'ID'
+
+        return 
+        
+            6939
+    #
+    """
+    validate_columns(df=dfe, id_column=id_column, required_cols=required_enrollment_columns())
+
+    dfe = filter_enrollment_table(dfe=dfe, term=term)
+
+    return dfe[id_column].dropna().nunique()
+
