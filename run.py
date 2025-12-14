@@ -8,7 +8,7 @@
 # 
 # 
 
-# In[1]:
+# In[2]:
 
 
 ## Load Packages
@@ -47,7 +47,7 @@ from ir_pell_accepts.tables_for_carol import generate_table_for_carol, generate_
 # pd.set_option('display.max_seq_items', 1000)
 
 
-# In[2]:
+# In[3]:
 
 
 ## Load Configuration File and store its values
@@ -63,12 +63,11 @@ with CONFIG_PATH.open("r") as f:
     config = yaml.safe_load(f)
 
 # File and folder paths
-BOX_ROOT = Path(config["box_repo"]["root"]).expanduser()
-DIR = Path(config["box_repo"]["pell_dir"]).expanduser()
-PELL_PATH = DIR / Path(config["box_repo"]["pell_file"]).expanduser()
-RETENTION_PATH = Path(config["box_repo"]["retention_dir"]).expanduser() / Path(config["box_repo"]["retention_file"]).expanduser()
-ENROLLMENT_PATH = Path(config["box_repo"]["enrollment_dir"]).expanduser() / Path(config["box_repo"]["enrollment_file"]).expanduser()
-RESULTS_PATH = Path(config["box_repo"]["results_dir"])
+BOX_ROOT = Path(config["box_repo"]["box_root"]).expanduser()
+PELL_PATH = BOX_ROOT / Path(config["box_repo"]["pell_dir"]).expanduser() / Path(config["box_repo"]["pell_file"]).expanduser()
+RETENTION_PATH = BOX_ROOT / Path(config["box_repo"]["retention_dir"]).expanduser() / Path(config["box_repo"]["retention_file"]).expanduser()
+ENROLLMENT_PATH = BOX_ROOT / Path(config["box_repo"]["enrollment_dir"]).expanduser() / Path(config["box_repo"]["enrollment_file"]).expanduser()
+RESULTS_PATH = BOX_ROOT / Path(config["box_repo"]["results_dir"])
 RESULTS_FILE = RESULTS_PATH / Path(config["box_repo"]["results_file"])
 
 # Project Parameters
@@ -86,9 +85,6 @@ id_column = config["params"]["id_column"]
 # Test configuation inputs
 if not BOX_ROOT.exists():
     raise FileNotFoundError(f"Box repo path does not exist: {BOX_ROOT}")
-
-if not DIR.exists():
-    raise FileNotFoundError(f"path does not exist: {DIR}")
 
 if not PELL_PATH.exists():
     raise FileNotFoundError(f"Input Pell file does not exist: {PELL_PATH}")

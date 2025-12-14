@@ -4,14 +4,14 @@
 
 box_repo:
   # Full path to your local Box repo clone
-  root: "C:/Users/sruddy1/Box"
-  pell_dir: "C:/Users/sruddy1/Box/Office of Decision Support Analyst Projects/ATI Kessler/Fall 2025 Pell Reporting"
+  box_root: "C:/Users/sruddy1/Box"
+  pell_dir: "Office of Decision Support Analyst Projects/ATI Kessler/Fall 2025 Pell Reporting"
   pell_file: "Pell Recipients by Academic Term or Year 25-11-26.xlsx"
-  retention_dir: "C:/Users/sruddy1/Box/Inst Res Collab/Tableau Server Data Sources/Retention"
+  retention_dir: "Inst Res Collab/Tableau Server Data Sources/Retention"
   retention_file: "Undergraduate Retention and Graduation.csv"
-  enrollment_dir: "C:/Users/sruddy1/Box/Inst Res Collab/Tableau Server Data Sources/Census Date Enrollment"
+  enrollment_dir: "Inst Res Collab/Tableau Server Data Sources/Census Date Enrollment"
   enrollment_file: "Census Date Enrollment (Decision Support Curated).csv"
-  results_dir: "C:/Users/sruddy1/Box/Office of Decision Support Analyst Projects/ATI Kessler/Fall 2025 Pell Reporting"
+  results_dir: "Office of Decision Support Analyst Projects/ATI Kessler/Fall 2025 Pell Reporting"
   results_file: "University of Dayton 2025 ATI Prelim.xlsx"
 
 params:
