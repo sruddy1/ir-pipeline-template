@@ -1,7 +1,7 @@
 # Python cruft
 __pycache__/
 *.pyc
-*egg-info/
+*.egg-info/
 
 # Virtualenv
 .venv/
