@@ -47,7 +47,8 @@ def construct_results_filename(file: str | Path, append_today: bool = True, appe
 
         return 
             
-            SS'my_file_12-13-2025_v0-3-2.xlsx'
+            'my_file_12-13-2025_v0-3-2.xlsx'
+            
     #
     """
     file = validate_filename(file)
