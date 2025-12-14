@@ -1,21 +1,17 @@
 # config/config.yaml
 # note the use of forward slashes for file paths
-# file types need to stay the same: do not change from xlxs to csv and vice-versa
 
-box_repo:
-  # Full path to your local Box repo clone
-  box_root: "C:/Users/sruddy1/Box"
-  pell_dir: "Office of Decision Support Analyst Projects/ATI Kessler/Fall 2025 Pell Reporting"
-  pell_file: "Pell Recipients by Academic Term or Year 25-11-26.xlsx"
-  retention_dir: "Inst Res Collab/Tableau Server Data Sources/Retention"
-  retention_file: "Undergraduate Retention and Graduation.csv"
-  enrollment_dir: "Inst Res Collab/Tableau Server Data Sources/Census Date Enrollment"
-  enrollment_file: "Census Date Enrollment (Decision Support Curated).csv"
-  results_dir: "Office of Decision Support Analyst Projects/ATI Kessler/Fall 2025 Pell Reporting"
-  results_file: "University of Dayton 2025 ATI Prelim.xlsx"
+#name the sections and subsections anything you want
+#put their values in quotations
+#access in a python script:
+# 1. assume you read config file and stored it in a variable called config.
+# 2. var_1_1 = config["section_1"]["subsection_1"]
 
-params:
-  term: "202580"
-  id_column: "ID"
-  ipeds_acad_year: "2017-2018"
+section_1:
+  subsection_1: "value_1_1"
+  subsection_2: "value_1_2"
+  
+section_2:
+  subsection_1: "value_2_1"
+  subsection_2: "value_2_2"
 
