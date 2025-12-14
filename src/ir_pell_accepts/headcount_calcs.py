@@ -49,11 +49,15 @@ def fall_enrollment(
 
     > pell : boolean (True/False)
 
+    >> default : False
+
         True: restrict to pell recipients.
         
         False: include both pell and non-pell students.
 
     > transfer : boolean (True/False)
+
+    >> default : False
     
         True: restrict to incoming transfer students.
 
