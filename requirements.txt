@@ -1,6 +1,7 @@
 pandas==2.2.3
 pyyaml==6.0.3
 openpyxl==3.1.5
+sqlalchemy==2.0.39
 mkdocs==1.6.1
 mkdocs-material==9.7.0
 mkdocstrings==1.0.0
