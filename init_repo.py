@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from ruamel.yaml import YAML
 import toml
+from datetime import datetime
 
 
 # In[ ]:
@@ -58,6 +59,7 @@ def update_mkdocs(root: Path) -> None:
     with file.open("w") as f:
         yaml.dump(yml, f)
 
+
 def update_package_name(root: Path) -> None:
     old_dir = Path(root) / Path("src/ir_pipeline_template")
     new_dir = Path(root) / Path("src") / normalize_package_name(root.name)
@@ -69,19 +71,33 @@ def update_package_name(root: Path) -> None:
 
     old_dir.rename(new_dir)
 
-    
 
-
+SENTINEL_FILE = ".repo_initialized"
 def main() -> int:
     repo_root = Path.cwd()
     if not repo_root.exists():
         print(f"ERROR: repo root not found: {repo_root}", file=sys.stderr)
         return 2
 
+    sentinel = repo_root / SENTINEL_FILE
+    if sentinel.exists():
+        print(
+            f"ERROR: Repo already initialized (found {SENTINEL_FILE}).\n"
+            f"Delete {SENTINEL_FILE} if you really want to run this again.",
+            file=sys.stderr,
+        )
+        return 1
+
     update_package_name(repo_root)
     update_pyproject(repo_root)
     update_mkdocs(repo_root)
-    
+
+    #this ensures the script is not run a second time
+    sentinel.write_text(
+        f"Initialized successfully at {datetime.now().isoformat()}\n",
+        encoding="utf-8",
+    )
+
     return 0
 
 
